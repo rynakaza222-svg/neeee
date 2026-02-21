@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOT DC | التفاعلي الاستراتيجي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --dot-cyan: #3fc8b8;
+      --dot-pink: #e91e63;
+      --dot-black: #011627;
+      --card-bg: rgba(255, 255, 255, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--dot-black);
+      color: #fff;
+      font-family: 'Cairo', sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      perspective: 1000px;
+      /* Essential for 3D effects */
+    }
+
+    /* Animated Grid Background */
+    #bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(63, 200, 184, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(63, 200, 184, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -1;
+      opacity: 0.4;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      z-index: 2000;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--dot-cyan), var(--dot-pink));
+      box-shadow: 0 0 15px var(--dot-cyan);
+      transition: width 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    }
+
+    /* Main Scroller */
+    .scroller {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+    }
+
+    .scroller::-webkit-scrollbar {
+      display: none;
+    }
+
+    section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: start;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Interactive Content Card */
+    .content-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 35px 25px;
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    /* Card Hover/Touch Effects */
+    .content-card:hover,
+    .content-card:active {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--dot-cyan);
+      box-shadow: 0 20px 50px rgba(63, 200, 184, 0.2);
+      transform: translateY(-10px) rotateX(2deg);
+    }
+
+    .glitch-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: clamp(2.8rem, 14vw, 5.8rem);
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 10px;
+      text-shadow: 3px 3px 0px var(--dot-pink);
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 7vw, 2.4rem);
+      color: var(--dot-cyan);
+      margin-bottom: 1.5rem;
+      display: inline-block;
+      border-right: 5px solid var(--dot-pink);
+      padding-right: 15px;
+      text-align: right;
+      width: 100%;
+    }
+
+    .budget-value {
+      font-size: clamp(3rem, 12vw, 5rem);
+      color: var(--dot-pink);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      margin: 10px 0;
+      display: block;
+      filter: drop-shadow(0 0 10px rgba(233, 30, 99, 0.4));
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 25px;
+    }
+
+    @media (min-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 25px 15px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: 0.3s;
+    }
+
+    .stat-box:hover {
+      border-color: var(--dot-pink);
+      background: rgba(233, 30, 99, 0.1);
+      transform: scale(1.05);
+    }
+
+    .counter {
+      display: block;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--dot-cyan);
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .page-indicator {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Montserrat';
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 4px;
+    }
+
+    ul {
+      list-style: none;
+      text-align: right;
+    }
+
+    li {
+      margin-bottom: 18px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+    }
+
+    li:before {
+      content: '➜';
+      color: var(--dot-pink);
+      font-size: 1rem;
+    }
+
+    .btn-action {
+      background: linear-gradient(135deg, var(--dot-cyan), #2ba395);
+      color: var(--dot-black);
+      border: none;
+      padding: 15px 40px;
+      border-radius: 50px;
+      font-weight: bold;
+      font-family: 'Cairo';
+      margin-top: 30px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(63, 200, 184, 0.3);
+      transition: all 0.3s;
+    }
+
+    .btn-action:active {
+      transform: scale(0.92);
+    }
+
+    .icon-bounce {
+      font-size: 3rem;
+      color: var(--dot-cyan);
+      margin-bottom: 15px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      20%,
+      50%,
+      80%,
+      100% {
+        transform: translateY(0);
+      }
+
+      40% {
+        transform: translateY(-20px);
+      }
+
+      60% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Specific Touch UI Fix */
+    @media (max-width: 600px) {
+      .content-card {
+        padding: 30px 15px;
+      }
+
+      .section-title {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="bg-grid"></div>
+  <div class="progress-container">
+    <div class="progress-bar" id="bar"></div>
+  </div>
+
+  <div class="scroller" id="mainScroller">
+    <!-- 1. Landing -->
+    <section>
+      <div class="content-card">
+        <h1 class="glitch-text">DOT<span style="color:var(--dot-cyan)">DC</span></h1>
+        <p style="letter-spacing: 5px; color: var(--dot-cyan); font-weight: bold; margin-bottom: 20px;">2025 VISION</p>
+        <p style="opacity: 0.9;">مرحباً بك في العرض الاستراتيجي التفاعلي</p>
+        <p style="font-size: 0.8rem; margin-top: 10px; color: var(--dot-pink);">اسحب للأسفل للاستكشاف</p>
+      </div>
+      <div class="page-indicator">01 / 10</div>
+    </section>
+
+    <!-- 2. Vision -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">الرؤية الاستراتيجية</h2>
+        <p style="font-size: 1.2rem; line-height: 1.8; text-align: justify; padding: 10px;">بناء أكبر شبكة مراكز بيانات سيادية في المنطقة، تدعم استقلالية البيانات السعودية وتدفع عجلة الابتكار الرقمي.</p>
+      </div>
+      <div class="page-indicator">02 / 10</div>
+    </section>
+
+    <!-- 3. Objectives -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">الأهداف الرئيسية</h2>
+        <ul>
+          <li>توفير جوده ترضي الجميع.</li>
+          <li>تحقيق مستوى عالي من الرفاهيه.</li>
+          <li>دعم التطور و رؤية 2030.</li>
+        </ul>
+      </div>
+      <div class="page-indicator">03 / 10</div>
+    </section>
+
+    <!-- 4. Market Analysis -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">تحليل السوق</h2>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="counter" data-val="75">0</span>
+            <p>نمو سنوي %</p>
+          </div>
+          <div class="stat-box">
+            <span class="counter" data-val="90">0</span>
+            <p>مليار حجم الاستثمار</p>
+          </div>
+        </div>
+      </div>
+      <div class="page-indicator">04 / 10</div>
+    </section>
+
+    <!-- 5. Budget (Interactive Value) -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">الميزانية التشغيلية</h2>
+        <div style="background: rgba(233, 30, 99, 0.05); padding: 40px 20px; border-radius: 30px; border: 2px dashed var(--dot-pink);">
+          <p>تكلفة المرحلة الأولى المعتمدة</p>
+          <span class="budget-value">20,000</span>
+          <p style="letter-spacing: 4px; font-weight: bold; color: var(--dot-cyan);">ريال سعودي</p>
+        </div>
+      </div>
+      <div class="page-indicator">05 / 10</div>
+    </section>
+
+    <!-- 6. Technology Stack -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">المكدس التقني</h2>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <i class="fas fa-microchip icon-bounce"></i>
+            <p>Edge Computing</p>
+          </div>
+          <div class="stat-box">
+            <i class="fas fa-cloud icon-bounce" style="color:var(--dot-pink)"></i>
+            <p>Hybrid Cloud</p>
+          </div>
+        </div>
+      </div>
+      <div class="page-indicator">06 / 10</div>
+    </section>
+
+    <!-- 7. Security -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">الأمن والسيادة</h2>
+        <p style="text-align: right; font-size: 1.1rem; line-height: 1.7;">نطبق بروتوكولات تشفير متقدمة تضمن بقاء كافة البيانات الحساسة داخل الحدود الجغرافية للمملكة مع رقابة صارمة.</p>
+      </div>
+      <div class="page-indicator">07 / 10</div>
+    </section>
+
+    <!-- 8. Execution Phases -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">مراحل التنفيذ</h2>
+        <div style="text-align: right;">
+          <div style="margin-bottom: 20px; border-right: 3px solid var(--dot-cyan); padding-right: 15px;">
+            <h4 style="color:var(--dot-cyan)">Q1 - التأسيس</h4>
+            <p>اختيار الفكره و الابداع.</p>
+          </div>
+          <div style="border-right: 3px solid var(--dot-pink); padding-right: 15px;">
+            <h4 style="color:var(--dot-pink)">Q2 - الإنشاء</h4>
+            <p>تطوير عالم الالعاب في السعودية.</p>
+          </div>
+        </div>
+      </div>
+      <div class="page-indicator">08 / 10</div>
+    </section>
+
+    <!-- 9. Future ROI -->
+    <section>
+      <div class="content-card">
+        <h2 class="section-title">العائد المتوقع</h2>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="counter" data-val="18">0</span>
+            <p>شهر للاسترداد</p>
+          </div>
+          <div class="stat-box">
+            <span class="counter" data-val="250">0</span>
+            <p>صافي ربح %</p>
+          </div>
+        </div>
+      </div>
+      <div class="page-indicator">09 / 10</div>
+    </section>
+
+    <!-- 10. Conclusion & Action -->
+    <section>
+      <div class="content-card">
+        <h2 style="font-size: 2.5rem; color: var(--dot-cyan); margin-bottom: 10px;">DOT DC</h2>
+        <p style="font-size: 1.2rem;">نحن نصنع المستقبل الرقمي اليوم.</p>
+        <button class="btn-action" onclick="scrollToTop()">
+          العودة للقمة <i class="fas fa-chevron-up"></i>
+        </button>
+      </div>
+      <div class="page-indicator">10 / 10</div>
+    </section>
+  </div>
+
+  <script>
+    const scroller = document.getElementById('mainScroller');
+    const bar = document.getElementById('bar');
+    // Smooth progress bar logic
+    scroller.addEventListener('scroll', () => {
+      const scrollTop = scroller.scrollTop;
+      const docHeight = scroller.scrollHeight - scroller.clientHeight;
+      const scrollPercent = (scrollTop / docHeight) * 100;
+      bar.style.width = scrollPercent + "%";
+    });
+    // 3D Card tilt effect for Mouse
+    document.querySelectorAll('.content-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / 15;
+        const rotateY = (centerX - x) / 15;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
+      });
+    });
+    // Counter Animation Observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.querySelectorAll('.counter').forEach(c => {
+            if (!c.dataset.done) animateValue(c);
+          });
+        }
+      });
+    }, {
+      threshold: 0.5
+    });
+    document.querySelectorAll('section').forEach(s => observer.observe(s));
+
+    function animateValue(obj) {
+      obj.dataset.done = true;
+      const target = parseFloat(obj.getAttribute('data-val'));
+      let start = 0;
+      const duration = 2000;
+      const startTime = performance.now();
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const val = progress * target;
+        obj.innerText = Math.floor(val).toLocaleString();
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    function scrollToTop() {
+      scroller.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  </script>
+
+</body>
+
+</html>
